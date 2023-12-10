@@ -1,20 +1,58 @@
-// SChar.cpp : This file contains the 'main' function. Program execution begins and ends there.
+﻿// SChar.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 
+#define WIN32_LEAN_AND_MEAN
+
+#ifdef _DEBUG
+#define _CRTDBG_MAP_ALLOC
+#include <cstdlib>
+#include <crtdbg.h>
+#endif
+
+#include <cassert>
 #include <iostream>
+#include <string>
+#include <Windows.h>
 
 int main()
 {
-    std::cout << "Hello World!\n";
+#ifdef _DEBUG
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif
+
+	_wsetlocale(LC_ALL, L".utf8");
+	SetConsoleOutputCP(CP_UTF8);
+	SetConsoleCP(CP_UTF8);
+
+	std::string inputString;
+	std::cout << "Type \"exit\" if you want to exit." << std::endl;
+
+	while (std::getline(std::cin, inputString))
+	{
+		const char* const rawString = inputString.c_str();
+		const int stringLength = static_cast<int>(strlen(rawString) + 1);
+
+		if (strcmp(rawString, "exit") == 0)
+			break;
+
+		const int wCharLength = MultiByteToWideChar(CP_UTF8, NULL, rawString, stringLength, nullptr, 0);
+
+		WCHAR* const outputString = new WCHAR[wCharLength];
+		const int convertedLength = MultiByteToWideChar(CP_UTF8, NULL, rawString, stringLength, outputString, wCharLength);
+		if (convertedLength != wCharLength)
+		{
+			std::cout << "convert from multibyte to widechar failed" << std::endl;
+			delete[] outputString;
+			continue;
+		}
+
+		for (int i = 0; i < wCharLength; i++)
+		{
+			std::wcout << outputString[i] << std::endl;
+		}
+
+		delete[] outputString;
+	}
+
+	return S_OK;
 }
-
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
